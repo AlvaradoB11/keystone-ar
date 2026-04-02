@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Keystone Dam AR Exhibit</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+
+  <!-- Three.js r128 (required by MindAR) + MindAR 1.2.5 -->
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-three.prod.js"></script>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      width: 100%; height: 100%;
+      overflow: hidden;
+      background: #000;
+      font-family: 'Space Mono', monospace;
+    }
+
+    #mindar-container {
+      position: fixed;
+      inset: 0;
+      width: 100%; height: 100%;
+    }
+
+    /* ── Loading overlay ── */
+    #loading-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 8888;
+      background: #000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      transition: opacity 0.6s ease;
+    }
+    #loading-screen.hidden { opacity: 0; pointer-events: none; }
+    #loading-screen .spinner {
+      width: 48px; height: 48px;
+      border: 3px solid rgba(0,255,231,0.2);
+      border-top-color: #00ffe7;
+      border-radius: 50%;
+      animation: spin 0.9s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    #loading-screen p {
+      font-family: 'Syne', sans-serif;
+      font-size: 0.9rem;
+      color: #00ffe7;
+      letter-spacing: 0.08em;
+    }
+
+    /* ── Error overlay ── */
+    #error-screen {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: rgba(0,0,0,0.92);
+      color: #fff;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      padding: 32px;
+      text-align: center;
+    }
+    #error-screen.visible { display: flex; }
+    #error-screen h2 {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.4rem;
+      color: #00ffe7;
+    }
+    #error-screen p {
+      font-size: 0.85rem;
+      line-height: 1.6;
+      max-width: 380px;
+      color: #ccc;
+    }
+
+    /* ── AR overlay root (covers the canvas) ── */
+    #ar-overlay {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    /* ── Name pill ── */
+    .name-pill {
+      position: absolute;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 6px 16px;
+      background: rgba(10, 10, 20, 0.78);
+      border: 1.5px solid #00ffe7;
+      border-radius: 999px;
+      box-shadow: 0 0 14px rgba(0,255,231,0.45), inset 0 0 8px rgba(0,255,231,0.06);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      white-space: nowrap;
+      cursor: pointer;
+      pointer-events: auto;
+      transform: translate(-50%, -50%);
+      transition: opacity 0.2s ease;
+      z-index: 100;
+    }
+    .name-pill.visible { display: inline-flex; }
+    .name-pill span {
+      font-family: 'Syne', sans-serif;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #00ffe7;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    /* ── Description card ── */
+    .desc-card {
+      position: absolute;
+      width: min(260px, 80vw);
+      background: rgba(8, 8, 18, 0.90);
+      border: 1.5px solid #00ffe7;
+      border-radius: 14px;
+      box-shadow: 0 0 32px rgba(0,255,231,0.35), inset 0 0 16px rgba(0,255,231,0.04);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      padding: 16px 18px 18px;
+      cursor: pointer;
+      pointer-events: none;
+      transform: translate(-50%, -50%) scale(0.55);
+      opacity: 0;
+      transition: transform 0.32s cubic-bezier(0.34, 1.56, 0.64, 1),
+                  opacity 0.24s ease;
+      z-index: 101;
+    }
+    .desc-card.open {
+      transform: translate(-50%, -50%) scale(1);
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .desc-card h3 {
+      font-family: 'Syne', sans-serif;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: #00ffe7;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid rgba(0,255,231,0.25);
+    }
+    .desc-card p {
+      font-size: 0.72rem;
+      line-height: 1.65;
+      color: rgba(230,240,255,0.88);
+    }
+    .desc-card .close-hint {
+      margin-top: 10px;
+      font-size: 0.62rem;
+      color: rgba(0,255,231,0.4);
+      text-align: right;
+      letter-spacing: 0.04em;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="loading-screen">
+    <div class="spinner"></div>
+    <p>INITIALIZING AR&hellip;</p>
+  </div>
+
+  <div id="error-screen">
+    <h2>Camera Access Required</h2>
+    <p>
+      This AR experience needs your camera.<br/><br/>
+      Please allow camera access when prompted, then reload the page.<br/><br/>
+      <strong>Note:</strong> HTTPS is required. Open this page from GitHub Pages
+      or another secure (https://) host.
+    </p>
+  </div>
+
+  <div id="mindar-container">
+    <div id="ar-overlay"></div>
+  </div>
+
+  <script>
+    // ── Content data (index = target image index 0–8) ──────────────
+    const TARGETS = [
+      {
+        name: "Flood Relief at Riverside",
+        desc: "Residents and emergency workers wade through floodwaters on Riverside Street, salvaging belongings after the Arkansas River overflows its banks during the Keystone Dam construction era."
+      },
+      {
+        name: "Turbine Chamber Interior",
+        desc: "A view inside the Keystone powerhouse during installation of the turbine shaft and generator housing. Photographed by the Tulsa District, U.S. Army Corps of Engineers, April 1961."
+      },
+      {
+        name: "Keystone Dam Brochure, 1958",
+        desc: "An original public information pamphlet produced by the U.S. Army Engineer District, Tulsa, promoting the Arkansas River Tributaries Multiple-Purpose Plan including water for industry, recreation, and navigation."
+      },
+      {
+        name: "Spillway Construction Aerial",
+        desc: "Aerial photograph taken April 6, 1961 by Hyde Construction Co., showing the Keystone Dam spillway site under active construction by the Corps of Engineers, Tulsa District."
+      },
+      {
+        name: "Hyde Cranes at the Spillway",
+        desc: "Two massive American-made cranes branded \"HYDE\" tower over the partially completed spillway structure. Workers on the ground give scale to the enormous concrete piers rising from the excavation."
+      },
+      {
+        name: "Reservoir Basin Aerial",
+        desc: "An aerial view of the future Keystone Lake basin showing rolling Oklahoma terrain, sparse cedar forests, and the early stages of road infrastructure being laid ahead of the reservoir filling."
+      },
+      {
+        name: "Arkansas River Diversion",
+        desc: "Aerial view of the Arkansas River channel being redirected during dam construction. The sweeping sandbars and floating boom lines mark the active diversion zone upstream of the dam site."
+      },
+      {
+        name: "Channel Excavation Trench",
+        desc: "Ground-level view looking toward the rising dam embankment from a freshly cut diversion channel. Utility poles and earthmoving equipment line the raw clay walls of the trench."
+      },
+      {
+        name: "Spillway Excavation, Looking South",
+        desc: "Documented October 10, 1960, this view of the center-left non-overflow section shows track-mounted cranes and excavators carving out the spillway foundation at Keystone Dam."
+      }
+    ];
+
+    // ── Projection math (no external Three.js Vector3 needed) ──────
+    // Projects a local-space point on an anchor.group to CSS pixel coords.
+    // Uses raw Float32Array matrix elements directly from Three.js internals.
+    function projectLocalToScreen(group, camera, canvas, lx, ly, lz) {
+      // 1. local → world  (column-major matrix multiplication)
+      const mw = group.matrixWorld.elements;
+      const wx = mw[0]*lx + mw[4]*ly + mw[8]*lz  + mw[12];
+      const wy = mw[1]*lx + mw[5]*ly + mw[9]*lz  + mw[13];
+      const wz = mw[2]*lx + mw[6]*ly + mw[10]*lz + mw[14];
+      const ww = mw[3]*lx + mw[7]*ly + mw[11]*lz + mw[15];
+
+      // 2. world → view  (camera.matrixWorldInverse)
+      const mv = camera.matrixWorldInverse.elements;
+      const vx = mv[0]*wx + mv[4]*wy + mv[8]*wz  + mv[12]*ww;
+      const vy = mv[1]*wx + mv[5]*wy + mv[9]*wz  + mv[13]*ww;
+      const vz = mv[2]*wx + mv[6]*wy + mv[10]*wz + mv[14]*ww;
+      const vw = mv[3]*wx + mv[7]*wy + mv[11]*wz + mv[15]*ww;
+
+      // 3. view → clip  (camera.projectionMatrix)
+      const mp = camera.projectionMatrix.elements;
+      const cx = mp[0]*vx + mp[4]*vy + mp[8]*vz  + mp[12]*vw;
+      const cy = mp[1]*vx + mp[5]*vy + mp[9]*vz  + mp[13]*vw;
+      const cw = mp[3]*vx + mp[7]*vy + mp[11]*vz + mp[15]*vw;
+
+      // 4. clip → screen pixels (NDC → viewport)
+      const ndcX =  cx / cw;
+      const ndcY =  cy / cw;
+      return {
+        x: ( ndcX * 0.5 + 0.5) * canvas.clientWidth,
+        y: (-ndcY * 0.5 + 0.5) * canvas.clientHeight
+      };
+    }
+
+    // ── Bootstrap ──────────────────────────────────────────────────
+    const loadingEl   = document.getElementById('loading-screen');
+    const errorEl     = document.getElementById('error-screen');
+    const overlayRoot = document.getElementById('ar-overlay');
+
+    function showError() {
+      loadingEl.classList.add('hidden');
+      errorEl.classList.add('visible');
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      const MindARThree = window.MINDAR.IMAGE.MindARThree;
+
+      const mindarThree = new MindARThree({
+        container: document.getElementById('mindar-container'),
+        imageTargetSrc: 'targets.mind',
+        maxTrack: 9,
+        uiLoading: 'no',
+        uiScanning: 'no',
+        uiError: 'no'
+      });
+
+      const { renderer, scene, camera } = mindarThree;
+
+      // ── Per-target DOM elements + anchor registration ─────────────
+      const states = TARGETS.map((t, i) => {
+        const anchor = mindarThree.addAnchor(i);
+
+        // Name pill
+        const pill = document.createElement('div');
+        pill.className = 'name-pill';
+        pill.innerHTML = `<span>${t.name}</span>`;
+        overlayRoot.appendChild(pill);
+
+        // Description card
+        const card = document.createElement('div');
+        card.className = 'desc-card';
+        card.innerHTML = `
+          <h3>${t.name}</h3>
+          <p>${t.desc}</p>
+          <div class="close-hint">tap to close</div>
+        `;
+        overlayRoot.appendChild(card);
+
+        const state = { found: false, expanded: false, anchor, pill, card };
+
+        // ── Target found / lost ──────────────────────────────────
+        anchor.onTargetFound = () => {
+          state.found = true;
+          if (!state.expanded) {
+            pill.classList.add('visible');
+            pill.style.opacity = '1';
+          }
+        };
+
+        anchor.onTargetLost = () => {
+          state.found    = false;
+          state.expanded = false;
+          pill.classList.remove('visible');
+          card.classList.remove('open');
+        };
+
+        // ── Tap handlers ─────────────────────────────────────────
+        pill.addEventListener('pointerdown', (e) => {
+          e.stopPropagation();
+          if (!state.found) return;
+          state.expanded = true;
+          pill.style.opacity = '0';
+          setTimeout(() => pill.classList.remove('visible'), 220);
+          card.classList.add('open');
+        });
+
+        card.addEventListener('pointerdown', (e) => {
+          e.stopPropagation();
+          state.expanded = false;
+          card.classList.remove('open');
+          if (state.found) {
+            pill.classList.add('visible');
+            requestAnimationFrame(() => { pill.style.opacity = '1'; });
+          }
+        });
+
+        return state;
+      });
+
+      // ── Render + overlay update loop ──────────────────────────────
+      renderer.setAnimationLoop(() => {
+        renderer.render(scene, camera);
+
+        const canvas = renderer.domElement;
+        states.forEach(({ found, expanded, anchor, pill, card }) => {
+          if (!found) return;
+
+          if (!expanded) {
+            // Pill: float slightly above the centre of the tracked image
+            const pos = projectLocalToScreen(anchor.group, camera, canvas, 0, 0.14, 0);
+            pill.style.left = pos.x + 'px';
+            pill.style.top  = pos.y + 'px';
+          } else {
+            // Card: centred on the image
+            const pos = projectLocalToScreen(anchor.group, camera, canvas, 0, 0, 0);
+            card.style.left = pos.x + 'px';
+            card.style.top  = pos.y + 'px';
+          }
+        });
+      });
+
+      // ── Start ─────────────────────────────────────────────────────
+      mindarThree.start()
+        .then(() => loadingEl.classList.add('hidden'))
+        .catch((err) => { console.error('MindAR error:', err); showError(); });
+    });
+  </script>
+</body>
+</html>
