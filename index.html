@@ -9,8 +9,15 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
 
-  <script src="lib/three.min.js"></script>
-  <script src="lib/mindar-image-three.prod.js"></script>
+  <!-- Import map: resolves bare specifiers used inside mindar-image-three.prod.js -->
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+    }
+  }
+  </script>
 
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -260,29 +267,32 @@
 
   <div id="loading-screen">
     <div class="spinner"></div>
-    <div id="load-status">LOADING AR DATA&hellip;</div>
-    <div id="load-sub">Downloading target database&hellip;</div>
+    <div id="load-status">LOADING AR&hellip;</div>
+    <div id="load-sub">Please wait&hellip;</div>
   </div>
 
   <div id="error-screen">
     <h2>Something went wrong</h2>
-    <p id="error-msg">Could not start AR. Make sure you are on HTTPS, using Chrome or Safari, and camera access is allowed.</p>
+    <p id="error-msg">Could not start AR. Use Chrome or Safari on HTTPS and allow camera access.</p>
     <button onclick="location.reload()">Try Again</button>
   </div>
 
   <div id="mindar-container"></div>
   <div id="ar-overlay"></div>
 
-  <script>
+  <script type="module">
+    import { MindARThree } from 'https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-three.prod.js';
+    import * as THREE from 'three';
+
     const TARGETS = [
-      { name: "Flood Relief at Riverside",       desc: "Residents and emergency workers wade through floodwaters on Riverside Street, salvaging belongings after the Arkansas River overflows its banks during the Keystone Dam construction era." },
-      { name: "Turbine Chamber Interior",         desc: "A view inside the Keystone powerhouse during installation of the turbine shaft and generator housing. Photographed by the Tulsa District, U.S. Army Corps of Engineers, April 1961." },
-      { name: "Keystone Dam Brochure, 1958",      desc: "An original public information pamphlet produced by the U.S. Army Engineer District, Tulsa, promoting the Arkansas River Tributaries Multiple-Purpose Plan including water for industry, recreation, and navigation." },
-      { name: "Spillway Construction Aerial",     desc: "Aerial photograph taken April 6, 1961 by Hyde Construction Co., showing the Keystone Dam spillway site under active construction by the Corps of Engineers, Tulsa District." },
-      { name: "Hyde Cranes at the Spillway",      desc: "Two massive American-made cranes branded \"HYDE\" tower over the partially completed spillway structure. Workers on the ground give scale to the enormous concrete piers rising from the excavation." },
-      { name: "Reservoir Basin Aerial",           desc: "An aerial view of the future Keystone Lake basin showing rolling Oklahoma terrain, sparse cedar forests, and the early stages of road infrastructure being laid ahead of the reservoir filling." },
-      { name: "Arkansas River Diversion",         desc: "Aerial view of the Arkansas River channel being redirected during dam construction. The sweeping sandbars and floating boom lines mark the active diversion zone upstream of the dam site." },
-      { name: "Channel Excavation Trench",        desc: "Ground-level view looking toward the rising dam embankment from a freshly cut diversion channel. Utility poles and earthmoving equipment line the raw clay walls of the trench." },
+      { name: "Flood Relief at Riverside",         desc: "Residents and emergency workers wade through floodwaters on Riverside Street, salvaging belongings after the Arkansas River overflows its banks during the Keystone Dam construction era." },
+      { name: "Turbine Chamber Interior",           desc: "A view inside the Keystone powerhouse during installation of the turbine shaft and generator housing. Photographed by the Tulsa District, U.S. Army Corps of Engineers, April 1961." },
+      { name: "Keystone Dam Brochure, 1958",        desc: "An original public information pamphlet produced by the U.S. Army Engineer District, Tulsa, promoting the Arkansas River Tributaries Multiple-Purpose Plan including water for industry, recreation, and navigation." },
+      { name: "Spillway Construction Aerial",       desc: "Aerial photograph taken April 6, 1961 by Hyde Construction Co., showing the Keystone Dam spillway site under active construction by the Corps of Engineers, Tulsa District." },
+      { name: "Hyde Cranes at the Spillway",        desc: "Two massive American-made cranes branded \"HYDE\" tower over the partially completed spillway structure. Workers on the ground give scale to the enormous concrete piers rising from the excavation." },
+      { name: "Reservoir Basin Aerial",             desc: "An aerial view of the future Keystone Lake basin showing rolling Oklahoma terrain, sparse cedar forests, and the early stages of road infrastructure being laid ahead of the reservoir filling." },
+      { name: "Arkansas River Diversion",           desc: "Aerial view of the Arkansas River channel being redirected during dam construction. The sweeping sandbars and floating boom lines mark the active diversion zone upstream of the dam site." },
+      { name: "Channel Excavation Trench",          desc: "Ground-level view looking toward the rising dam embankment from a freshly cut diversion channel. Utility poles and earthmoving equipment line the raw clay walls of the trench." },
       { name: "Spillway Excavation, Looking South", desc: "Documented October 10, 1960, this view of the center-left non-overflow section shows track-mounted cranes and excavators carving out the spillway foundation at Keystone Dam." }
     ];
 
@@ -313,8 +323,7 @@
       document.getElementById('error-screen').classList.add('visible');
     }
 
-    document.getElementById('start-btn').addEventListener('click', function () {
-      // Hide splash, show loading
+    document.getElementById('start-btn').addEventListener('click', async () => {
       document.getElementById('start-screen').classList.add('hidden');
       const loadingEl  = document.getElementById('loading-screen');
       const statusEl   = document.getElementById('load-status');
@@ -322,11 +331,6 @@
       loadingEl.classList.add('visible');
 
       try {
-        if (!window.MINDAR || !window.MINDAR.IMAGE) {
-          showError('AR library failed to load. Check your internet connection and tap Try Again.');
-          return;
-        }
-        const MindARThree = window.MINDAR.IMAGE.MindARThree;
         const overlayRoot = document.getElementById('ar-overlay');
 
         const mindarThree = new MindARThree({
@@ -340,97 +344,74 @@
 
         const { renderer, scene, camera } = mindarThree;
 
-        // Register anchors + build DOM overlays
         const states = TARGETS.map((t, i) => {
           const anchor = mindarThree.addAnchor(i);
 
           const pill = document.createElement('div');
           pill.className = 'name-pill';
-          pill.innerHTML = '<span>' + t.name + '</span>';
+          pill.innerHTML = `<span>${t.name}</span>`;
           overlayRoot.appendChild(pill);
 
           const card = document.createElement('div');
           card.className = 'desc-card';
-          card.innerHTML = '<h3>' + t.name + '</h3><p>' + t.desc + '</p><div class="close-hint">tap to close</div>';
+          card.innerHTML = `<h3>${t.name}</h3><p>${t.desc}</p><div class="close-hint">tap to close</div>`;
           overlayRoot.appendChild(card);
 
           const state = { found: false, expanded: false, anchor, pill, card };
 
-          anchor.onTargetFound = function () {
+          anchor.onTargetFound = () => {
             state.found = true;
-            if (!state.expanded) {
-              pill.classList.add('visible');
-              pill.style.opacity = '1';
-            }
+            if (!state.expanded) { pill.classList.add('visible'); pill.style.opacity = '1'; }
           };
-
-          anchor.onTargetLost = function () {
-            state.found = false;
-            state.expanded = false;
-            pill.classList.remove('visible');
-            card.classList.remove('open');
+          anchor.onTargetLost = () => {
+            state.found = false; state.expanded = false;
+            pill.classList.remove('visible'); card.classList.remove('open');
           };
-
-          pill.addEventListener('click', function (e) {
+          pill.addEventListener('click', e => {
             e.stopPropagation();
             if (!state.found) return;
             state.expanded = true;
             pill.style.opacity = '0';
-            setTimeout(function () { pill.classList.remove('visible'); }, 220);
+            setTimeout(() => pill.classList.remove('visible'), 220);
             card.classList.add('open');
           });
-
-          card.addEventListener('click', function (e) {
+          card.addEventListener('click', e => {
             e.stopPropagation();
-            state.expanded = false;
-            card.classList.remove('open');
-            if (state.found) {
-              pill.classList.add('visible');
-              requestAnimationFrame(function () { pill.style.opacity = '1'; });
-            }
+            state.expanded = false; card.classList.remove('open');
+            if (state.found) { pill.classList.add('visible'); requestAnimationFrame(() => { pill.style.opacity = '1'; }); }
           });
-
           return state;
         });
 
-        renderer.setAnimationLoop(function () {
+        renderer.setAnimationLoop(() => {
           renderer.render(scene, camera);
-          var canvas = renderer.domElement;
-          states.forEach(function (s) {
+          const canvas = renderer.domElement;
+          states.forEach(s => {
             if (!s.found) return;
             if (!s.expanded) {
-              var p = projectLocalToScreen(s.anchor.group, camera, canvas, 0, 0.14, 0);
-              s.pill.style.left = p.x + 'px';
-              s.pill.style.top  = p.y + 'px';
+              const p = projectLocalToScreen(s.anchor.group, camera, canvas, 0, 0.14, 0);
+              s.pill.style.left = p.x + 'px'; s.pill.style.top = p.y + 'px';
             } else {
-              var p = projectLocalToScreen(s.anchor.group, camera, canvas, 0, 0, 0);
-              s.card.style.left = p.x + 'px';
-              s.card.style.top  = p.y + 'px';
+              const p = projectLocalToScreen(s.anchor.group, camera, canvas, 0, 0, 0);
+              s.card.style.left = p.x + 'px'; s.card.style.top = p.y + 'px';
             }
           });
         });
 
-        // Stage loading messages while waiting
-        setTimeout(function () { statusEl.textContent = 'PROCESSING\u2026'; subEl.textContent = 'Building image recognition model\u2026'; }, 4000);
-        setTimeout(function () { statusEl.textContent = 'STARTING CAMERA\u2026'; subEl.textContent = 'Allow camera access when prompted\u2026'; }, 10000);
+        setTimeout(() => { statusEl.textContent = 'PROCESSING…'; subEl.textContent = 'Building recognition model…'; }, 4000);
+        setTimeout(() => { statusEl.textContent = 'STARTING CAMERA…'; subEl.textContent = 'Allow camera access when prompted…'; }, 10000);
 
-        mindarThree.start()
-          .then(function () {
-            loadingEl.classList.remove('visible');
-          })
-          .catch(function (err) {
-            console.error('MindAR error:', err);
-            var msg = String(err).toLowerCase();
-            if (msg.indexOf('permission') !== -1 || msg.indexOf('notallowed') !== -1) {
-              showError('Camera access was denied. Allow camera in your browser settings, then tap Try Again.');
-            } else {
-              showError('Could not start AR. Make sure you are using Chrome or Safari on HTTPS, and camera access is allowed.');
-            }
-          });
+        await mindarThree.start();
+        loadingEl.classList.remove('visible');
 
-      } catch (e) {
-        console.error('Init error:', e);
-        showError('Initialisation failed: ' + e.message);
+      } catch(err) {
+        console.error(err);
+        const msg = String(err).toLowerCase();
+        if (msg.includes('permission') || msg.includes('notallowed')) {
+          showError('Camera access was denied. Allow camera in your browser settings, then tap Try Again.');
+        } else {
+          showError('Could not start AR: ' + err.message);
+        }
       }
     });
   </script>
