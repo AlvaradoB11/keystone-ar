@@ -181,16 +181,18 @@
       overflow: hidden;
       z-index: 500;
     }
+
+    /* Name pill — shown below the physical image while tracking */
     .name-pill {
       position: absolute;
       display: none;
       align-items: center;
       justify-content: center;
-      padding: 6px 16px;
+      padding: 5px 14px;
       background: rgba(10,10,20,0.82);
       border: 1.5px solid #00ffe7;
       border-radius: 999px;
-      box-shadow: 0 0 14px rgba(0,255,231,0.45);
+      box-shadow: 0 0 12px rgba(0,255,231,0.4);
       backdrop-filter: blur(8px);
       -webkit-backdrop-filter: blur(8px);
       white-space: nowrap;
@@ -202,22 +204,28 @@
     .name-pill.visible { display: inline-flex; }
     .name-pill span {
       font-family: 'Syne', sans-serif;
-      font-size: 0.75rem;
+      font-size: 0.7rem;
       font-weight: 700;
       color: #00ffe7;
       letter-spacing: 0.06em;
       text-transform: uppercase;
     }
+
+    /* Framed image card */
     .desc-card {
       position: absolute;
-      width: min(260px, 80vw);
-      background: rgba(8,8,18,0.92);
-      border: 1.5px solid #00ffe7;
-      border-radius: 14px;
-      box-shadow: 0 0 32px rgba(0,255,231,0.35);
-      backdrop-filter: blur(14px);
-      -webkit-backdrop-filter: blur(14px);
-      padding: 16px 18px 18px;
+      width: min(240px, 78vw);
+      background: rgba(6,6,14,0.94);
+      /* double-rule decorative frame */
+      border: 3px solid #00ffe7;
+      outline: 1px solid rgba(0,255,231,0.25);
+      outline-offset: 5px;
+      border-radius: 4px;
+      box-shadow:
+        0 0 0 7px rgba(6,6,14,0.94),
+        0 0 0 8px rgba(0,255,231,0.25),
+        0 0 40px rgba(0,255,231,0.3);
+      overflow: visible;
       cursor: pointer;
       pointer-events: none;
       transform: translate(-50%, -50%) scale(0.55);
@@ -229,27 +237,44 @@
       opacity: 1;
       pointer-events: auto;
     }
-    .desc-card h3 {
+
+    /* Image at the top of every card */
+    .desc-card .card-img {
+      width: 100%;
+      display: block;
+      border-radius: 2px 2px 0 0;
+      object-fit: cover;
+      aspect-ratio: 16/9;
+    }
+
+    /* Title below image */
+    .desc-card .card-title {
       font-family: 'Syne', sans-serif;
-      font-size: 0.82rem;
+      font-size: 0.78rem;
       font-weight: 700;
       color: #00ffe7;
       letter-spacing: 0.05em;
       text-transform: uppercase;
-      margin-bottom: 10px;
-      padding-bottom: 8px;
-      border-bottom: 1px solid rgba(0,255,231,0.25);
+      text-align: center;
+      padding: 10px 12px 8px;
     }
-    .desc-card p {
-      font-size: 0.72rem;
-      line-height: 1.65;
-      color: rgba(230,240,255,0.88);
+
+    /* Description text (hidden for image-only targets) */
+    .desc-card .card-desc {
+      font-size: 0.7rem;
+      line-height: 1.6;
+      color: rgba(220,235,255,0.85);
+      padding: 0 12px 10px;
+      border-top: 1px solid rgba(0,255,231,0.2);
+      padding-top: 8px;
     }
+    .desc-card .card-desc:empty { display: none; }
+
     .desc-card .close-hint {
-      margin-top: 10px;
-      font-size: 0.62rem;
-      color: rgba(0,255,231,0.4);
+      font-size: 0.6rem;
+      color: rgba(0,255,231,0.35);
       text-align: right;
+      padding: 0 10px 8px;
     }
   </style>
 </head>
@@ -354,7 +379,12 @@
 
           const card = document.createElement('div');
           card.className = 'desc-card';
-          card.innerHTML = `<h3>${t.name}</h3><p>${t.desc}</p><div class="close-hint">tap to close</div>`;
+          card.innerHTML = `
+            <img class="card-img" src="assets/target-${i + 1}.jpg" alt="${t.name}" />
+            <div class="card-title">${t.name}</div>
+            <div class="card-desc">${t.desc}</div>
+            <div class="close-hint">tap to close</div>
+          `;
           overlayRoot.appendChild(card);
 
           const state = { found: false, expanded: false, anchor, pill, card };
@@ -389,7 +419,7 @@
           states.forEach(s => {
             if (!s.found) return;
             if (!s.expanded) {
-              const p = projectLocalToScreen(s.anchor.group, camera, canvas, 0, 0.14, 0);
+              const p = projectLocalToScreen(s.anchor.group, camera, canvas, 0, -0.14, 0);
               s.pill.style.left = p.x + 'px'; s.pill.style.top = p.y + 'px';
             } else {
               const p = projectLocalToScreen(s.anchor.group, camera, canvas, 0, 0, 0);
