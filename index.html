@@ -28,6 +28,75 @@
       width: 100%; height: 100%;
     }
 
+    /* ── Start / splash screen ── */
+    #start-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 9500;
+      background: #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 32px;
+      transition: opacity 0.5s ease;
+    }
+    #start-screen.hidden { opacity: 0; pointer-events: none; }
+
+    .start-inner {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      text-align: center;
+      max-width: 340px;
+    }
+    .start-inner h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: 2rem;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: 0.04em;
+    }
+    .start-inner .start-sub {
+      font-family: 'Syne', sans-serif;
+      font-size: 0.85rem;
+      color: #00ffe7;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      margin-top: -10px;
+    }
+    .start-inner .start-desc {
+      font-size: 0.8rem;
+      color: rgba(200,210,220,0.75);
+      line-height: 1.65;
+      margin-top: 6px;
+    }
+    #start-btn {
+      margin-top: 10px;
+      padding: 14px 36px;
+      background: transparent;
+      border: 2px solid #00ffe7;
+      border-radius: 999px;
+      color: #00ffe7;
+      font-family: 'Syne', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      cursor: pointer;
+      box-shadow: 0 0 20px rgba(0,255,231,0.3);
+      transition: background 0.2s, box-shadow 0.2s;
+    }
+    #start-btn:active {
+      background: rgba(0,255,231,0.12);
+      box-shadow: 0 0 32px rgba(0,255,231,0.55);
+    }
+    .start-note {
+      font-size: 0.65rem;
+      color: rgba(255,255,255,0.25);
+      letter-spacing: 0.04em;
+    }
+
     /* ── Loading overlay ── */
     #loading-screen {
       position: fixed;
@@ -198,10 +267,21 @@
 </head>
 <body>
 
+  <!-- Splash / start screen -->
+  <div id="start-screen">
+    <div class="start-inner">
+      <h1>Keystone Dam</h1>
+      <p class="start-sub">AR Exhibit</p>
+      <p class="start-desc">Point your camera at any exhibit photograph to reveal its story.</p>
+      <button id="start-btn">Start AR Experience</button>
+      <p class="start-note">Requires camera access &amp; HTTPS</p>
+    </div>
+  </div>
+
   <div id="loading-screen">
     <div class="spinner"></div>
     <div class="status" id="load-status">LOADING AR DATA&hellip;</div>
-    <div class="substatus" id="load-sub">Downloading target database&hellip;</div>
+    <div class="substatus" id="load-sub">Downloading target database (4.8 MB)&hellip;</div>
   </div>
 
   <div id="error-screen">
@@ -302,8 +382,11 @@
     // ── Boot ───────────────────────────────────────────────────────
     window.addEventListener('DOMContentLoaded', () => {
       const MindARThree = window.MINDAR.IMAGE.MindARThree;
+      const startScreen = document.getElementById('start-screen');
+      const startBtn    = document.getElementById('start-btn');
 
-      setStatus('LOADING AR DATA…', 'Downloading target database (4.8 MB)…');
+      // Hide loading until user taps Start
+      loadingEl.classList.add('hidden');
 
       const mindarThree = new MindARThree({
         container: document.getElementById('mindar-container'),
@@ -391,16 +474,19 @@
         });
       });
 
-      // ── Start with staged status messages ─────────────────────
-      // MindAR doesn't expose download progress, so we time the phases
-      setTimeout(() => setStatus('PROCESSING…', 'Preparing image recognition model…'), 3000);
-      setTimeout(() => setStatus('STARTING CAMERA…', 'Please allow camera access when prompted…'), 8000);
+      // ── Start button — triggers camera permission via user gesture ──
+      startBtn.addEventListener('click', () => {
+        startScreen.classList.add('hidden');
+        loadingEl.classList.remove('hidden');
+        setStatus('LOADING AR DATA…', 'Downloading target database (4.8 MB)…');
+        setTimeout(() => setStatus('PROCESSING…', 'Preparing image recognition model…'), 3000);
+        setTimeout(() => setStatus('STARTING CAMERA…', 'Please allow camera access when prompted…'), 8000);
 
-      mindarThree.start()
-        .then(() => {
-          loadingEl.classList.add('hidden');
-        })
-        .catch((err) => {
+        mindarThree.start()
+          .then(() => {
+            loadingEl.classList.add('hidden');
+          })
+          .catch((err) => {
           console.error('MindAR error:', err);
           const msg = String(err).toLowerCase();
           if (msg.includes('permission') || msg.includes('notallowed')) {
@@ -411,6 +497,7 @@
             showError('Could not start AR. Make sure you are on HTTPS, using Chrome or Safari, and camera access is allowed.');
           }
         });
+      });
     });
   </script>
 </body>
