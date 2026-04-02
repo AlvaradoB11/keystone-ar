@@ -9,8 +9,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
 
-  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-three.prod.js"></script>
+  <script src="https://unpkg.com/three@0.128.0/build/three.min.js"></script>
+  <script src="https://unpkg.com/mind-ar@1.2.5/dist/mindar-image-three.prod.js"></script>
 
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -322,6 +322,10 @@
       loadingEl.classList.add('visible');
 
       try {
+        if (!window.MINDAR || !window.MINDAR.IMAGE) {
+          showError('AR library failed to load. Check your internet connection and tap Try Again.');
+          return;
+        }
         const MindARThree = window.MINDAR.IMAGE.MindARThree;
         const overlayRoot = document.getElementById('ar-overlay');
 
