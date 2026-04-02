@@ -28,7 +28,7 @@
       width: 100%; height: 100%;
     }
 
-    /* ── Start / splash screen ── */
+    /* ── Splash screen ── */
     #start-screen {
       position: fixed;
       inset: 0;
@@ -38,7 +38,7 @@
       align-items: center;
       justify-content: center;
       padding: 32px;
-      transition: opacity 0.5s ease;
+      transition: opacity 0.4s ease;
     }
     #start-screen.hidden { opacity: 0; pointer-events: none; }
 
@@ -55,17 +55,16 @@
       font-size: 2rem;
       font-weight: 700;
       color: #fff;
-      letter-spacing: 0.04em;
     }
-    .start-inner .start-sub {
+    .start-sub {
       font-family: 'Syne', sans-serif;
       font-size: 0.85rem;
       color: #00ffe7;
       letter-spacing: 0.18em;
       text-transform: uppercase;
-      margin-top: -10px;
+      margin-top: -8px;
     }
-    .start-inner .start-desc {
+    .start-desc {
       font-size: 0.8rem;
       color: rgba(200,210,220,0.75);
       line-height: 1.65;
@@ -84,35 +83,29 @@
       letter-spacing: 0.08em;
       text-transform: uppercase;
       cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
       box-shadow: 0 0 20px rgba(0,255,231,0.3);
-      transition: background 0.2s, box-shadow 0.2s;
     }
-    #start-btn:active {
-      background: rgba(0,255,231,0.12);
-      box-shadow: 0 0 32px rgba(0,255,231,0.55);
-    }
+    #start-btn:active { background: rgba(0,255,231,0.15); }
     .start-note {
       font-size: 0.65rem;
       color: rgba(255,255,255,0.25);
-      letter-spacing: 0.04em;
     }
 
-    /* ── Loading overlay ── */
+    /* ── Loading screen ── */
     #loading-screen {
+      display: none;
       position: fixed;
       inset: 0;
       z-index: 9000;
       background: #000;
-      display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       gap: 18px;
-      transition: opacity 0.5s ease;
     }
-    #loading-screen.hidden { opacity: 0; pointer-events: none; }
-
-    #loading-screen .spinner {
+    #loading-screen.visible { display: flex; }
+    .spinner {
       width: 52px; height: 52px;
       border: 3px solid rgba(0,255,231,0.15);
       border-top-color: #00ffe7;
@@ -120,8 +113,7 @@
       animation: spin 0.9s linear infinite;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
-
-    #loading-screen .status {
+    #load-status {
       font-family: 'Syne', sans-serif;
       font-size: 0.85rem;
       color: #00ffe7;
@@ -129,23 +121,21 @@
       text-align: center;
       padding: 0 24px;
     }
-    #loading-screen .substatus {
+    #load-sub {
       font-size: 0.7rem;
       color: rgba(0,255,231,0.45);
-      letter-spacing: 0.05em;
       text-align: center;
       padding: 0 24px;
       margin-top: -8px;
     }
 
-    /* ── Error overlay ── */
+    /* ── Error screen ── */
     #error-screen {
       display: none;
       position: fixed;
       inset: 0;
       z-index: 9999;
-      background: rgba(0,0,0,0.94);
-      color: #fff;
+      background: rgba(0,0,0,0.95);
       flex-direction: column;
       align-items: center;
       justify-content: center;
@@ -166,7 +156,6 @@
       color: #bbb;
     }
     #error-screen button {
-      margin-top: 8px;
       padding: 10px 28px;
       background: transparent;
       border: 1.5px solid #00ffe7;
@@ -174,27 +163,24 @@
       color: #00ffe7;
       font-family: 'Syne', sans-serif;
       font-size: 0.8rem;
-      letter-spacing: 0.06em;
       cursor: pointer;
     }
 
-    /* ── AR overlay (sits above WebGL canvas via z-index) ── */
+    /* ── AR overlay ── */
     #ar-overlay {
       position: fixed;
       inset: 0;
       pointer-events: none;
       overflow: hidden;
-      z-index: 100;
+      z-index: 500;
     }
-
-    /* ── Name pill ── */
     .name-pill {
       position: absolute;
       display: none;
       align-items: center;
       justify-content: center;
       padding: 6px 16px;
-      background: rgba(10, 10, 20, 0.80);
+      background: rgba(10,10,20,0.82);
       border: 1.5px solid #00ffe7;
       border-radius: 999px;
       box-shadow: 0 0 14px rgba(0,255,231,0.45);
@@ -205,7 +191,6 @@
       pointer-events: auto;
       transform: translate(-50%, -50%);
       transition: opacity 0.2s ease;
-      z-index: 101;
     }
     .name-pill.visible { display: inline-flex; }
     .name-pill span {
@@ -216,12 +201,10 @@
       letter-spacing: 0.06em;
       text-transform: uppercase;
     }
-
-    /* ── Description card ── */
     .desc-card {
       position: absolute;
       width: min(260px, 80vw);
-      background: rgba(8, 8, 18, 0.92);
+      background: rgba(8,8,18,0.92);
       border: 1.5px solid #00ffe7;
       border-radius: 14px;
       box-shadow: 0 0 32px rgba(0,255,231,0.35);
@@ -232,9 +215,7 @@
       pointer-events: none;
       transform: translate(-50%, -50%) scale(0.55);
       opacity: 0;
-      transition: transform 0.32s cubic-bezier(0.34, 1.56, 0.64, 1),
-                  opacity 0.24s ease;
-      z-index: 102;
+      transition: transform 0.32s cubic-bezier(0.34,1.56,0.64,1), opacity 0.24s ease;
     }
     .desc-card.open {
       transform: translate(-50%, -50%) scale(1);
@@ -267,7 +248,6 @@
 </head>
 <body>
 
-  <!-- Splash / start screen -->
   <div id="start-screen">
     <div class="start-inner">
       <h1>Keystone Dam</h1>
@@ -280,224 +260,174 @@
 
   <div id="loading-screen">
     <div class="spinner"></div>
-    <div class="status" id="load-status">LOADING AR DATA&hellip;</div>
-    <div class="substatus" id="load-sub">Downloading target database (4.8 MB)&hellip;</div>
+    <div id="load-status">LOADING AR DATA&hellip;</div>
+    <div id="load-sub">Downloading target database&hellip;</div>
   </div>
 
   <div id="error-screen">
     <h2>Something went wrong</h2>
-    <p id="error-msg">Camera access was denied or this device does not support WebAR. Open in Chrome over HTTPS and allow camera access.</p>
+    <p id="error-msg">Could not start AR. Make sure you are on HTTPS, using Chrome or Safari, and camera access is allowed.</p>
     <button onclick="location.reload()">Try Again</button>
   </div>
 
-  <!-- MindAR mounts its canvas here -->
   <div id="mindar-container"></div>
-
-  <!-- Overlay lives outside MindAR container so z-index stacks above canvas -->
   <div id="ar-overlay"></div>
 
   <script>
     const TARGETS = [
-      {
-        name: "Flood Relief at Riverside",
-        desc: "Residents and emergency workers wade through floodwaters on Riverside Street, salvaging belongings after the Arkansas River overflows its banks during the Keystone Dam construction era."
-      },
-      {
-        name: "Turbine Chamber Interior",
-        desc: "A view inside the Keystone powerhouse during installation of the turbine shaft and generator housing. Photographed by the Tulsa District, U.S. Army Corps of Engineers, April 1961."
-      },
-      {
-        name: "Keystone Dam Brochure, 1958",
-        desc: "An original public information pamphlet produced by the U.S. Army Engineer District, Tulsa, promoting the Arkansas River Tributaries Multiple-Purpose Plan including water for industry, recreation, and navigation."
-      },
-      {
-        name: "Spillway Construction Aerial",
-        desc: "Aerial photograph taken April 6, 1961 by Hyde Construction Co., showing the Keystone Dam spillway site under active construction by the Corps of Engineers, Tulsa District."
-      },
-      {
-        name: "Hyde Cranes at the Spillway",
-        desc: "Two massive American-made cranes branded \"HYDE\" tower over the partially completed spillway structure. Workers on the ground give scale to the enormous concrete piers rising from the excavation."
-      },
-      {
-        name: "Reservoir Basin Aerial",
-        desc: "An aerial view of the future Keystone Lake basin showing rolling Oklahoma terrain, sparse cedar forests, and the early stages of road infrastructure being laid ahead of the reservoir filling."
-      },
-      {
-        name: "Arkansas River Diversion",
-        desc: "Aerial view of the Arkansas River channel being redirected during dam construction. The sweeping sandbars and floating boom lines mark the active diversion zone upstream of the dam site."
-      },
-      {
-        name: "Channel Excavation Trench",
-        desc: "Ground-level view looking toward the rising dam embankment from a freshly cut diversion channel. Utility poles and earthmoving equipment line the raw clay walls of the trench."
-      },
-      {
-        name: "Spillway Excavation, Looking South",
-        desc: "Documented October 10, 1960, this view of the center-left non-overflow section shows track-mounted cranes and excavators carving out the spillway foundation at Keystone Dam."
-      }
+      { name: "Flood Relief at Riverside",       desc: "Residents and emergency workers wade through floodwaters on Riverside Street, salvaging belongings after the Arkansas River overflows its banks during the Keystone Dam construction era." },
+      { name: "Turbine Chamber Interior",         desc: "A view inside the Keystone powerhouse during installation of the turbine shaft and generator housing. Photographed by the Tulsa District, U.S. Army Corps of Engineers, April 1961." },
+      { name: "Keystone Dam Brochure, 1958",      desc: "An original public information pamphlet produced by the U.S. Army Engineer District, Tulsa, promoting the Arkansas River Tributaries Multiple-Purpose Plan including water for industry, recreation, and navigation." },
+      { name: "Spillway Construction Aerial",     desc: "Aerial photograph taken April 6, 1961 by Hyde Construction Co., showing the Keystone Dam spillway site under active construction by the Corps of Engineers, Tulsa District." },
+      { name: "Hyde Cranes at the Spillway",      desc: "Two massive American-made cranes branded \"HYDE\" tower over the partially completed spillway structure. Workers on the ground give scale to the enormous concrete piers rising from the excavation." },
+      { name: "Reservoir Basin Aerial",           desc: "An aerial view of the future Keystone Lake basin showing rolling Oklahoma terrain, sparse cedar forests, and the early stages of road infrastructure being laid ahead of the reservoir filling." },
+      { name: "Arkansas River Diversion",         desc: "Aerial view of the Arkansas River channel being redirected during dam construction. The sweeping sandbars and floating boom lines mark the active diversion zone upstream of the dam site." },
+      { name: "Channel Excavation Trench",        desc: "Ground-level view looking toward the rising dam embankment from a freshly cut diversion channel. Utility poles and earthmoving equipment line the raw clay walls of the trench." },
+      { name: "Spillway Excavation, Looking South", desc: "Documented October 10, 1960, this view of the center-left non-overflow section shows track-mounted cranes and excavators carving out the spillway foundation at Keystone Dam." }
     ];
 
-    // ── Projection: local anchor space → CSS pixel coords ──────────
     function projectLocalToScreen(group, camera, canvas, lx, ly, lz) {
       const mw = group.matrixWorld.elements;
       const wx = mw[0]*lx + mw[4]*ly + mw[8]*lz  + mw[12];
       const wy = mw[1]*lx + mw[5]*ly + mw[9]*lz  + mw[13];
       const wz = mw[2]*lx + mw[6]*ly + mw[10]*lz + mw[14];
       const ww = mw[3]*lx + mw[7]*ly + mw[11]*lz + mw[15];
-
       const mv = camera.matrixWorldInverse.elements;
       const vx = mv[0]*wx + mv[4]*wy + mv[8]*wz  + mv[12]*ww;
       const vy = mv[1]*wx + mv[5]*wy + mv[9]*wz  + mv[13]*ww;
       const vz = mv[2]*wx + mv[6]*wy + mv[10]*wz + mv[14]*ww;
       const vw = mv[3]*wx + mv[7]*wy + mv[11]*wz + mv[15]*ww;
-
       const mp = camera.projectionMatrix.elements;
       const cx = mp[0]*vx + mp[4]*vy + mp[8]*vz  + mp[12]*vw;
       const cy = mp[1]*vx + mp[5]*vy + mp[9]*vz  + mp[13]*vw;
       const cw = mp[3]*vx + mp[7]*vy + mp[11]*vz + mp[15]*vw;
-
       return {
         x: ( cx/cw * 0.5 + 0.5) * canvas.clientWidth,
         y: (-cy/cw * 0.5 + 0.5) * canvas.clientHeight
       };
     }
 
-    // ── UI helpers ─────────────────────────────────────────────────
-    const loadingEl  = document.getElementById('loading-screen');
-    const errorEl    = document.getElementById('error-screen');
-    const statusEl   = document.getElementById('load-status');
-    const subEl      = document.getElementById('load-sub');
-    const overlayRoot = document.getElementById('ar-overlay');
-
-    function setStatus(main, sub) {
-      statusEl.textContent = main;
-      subEl.textContent = sub || '';
-    }
-
     function showError(msg) {
-      loadingEl.classList.add('hidden');
+      document.getElementById('loading-screen').classList.remove('visible');
       if (msg) document.getElementById('error-msg').textContent = msg;
-      errorEl.classList.add('visible');
+      document.getElementById('error-screen').classList.add('visible');
     }
 
-    // ── Boot ───────────────────────────────────────────────────────
-    window.addEventListener('DOMContentLoaded', () => {
-      const MindARThree = window.MINDAR.IMAGE.MindARThree;
-      const startScreen = document.getElementById('start-screen');
-      const startBtn    = document.getElementById('start-btn');
+    document.getElementById('start-btn').addEventListener('click', function () {
+      // Hide splash, show loading
+      document.getElementById('start-screen').classList.add('hidden');
+      const loadingEl  = document.getElementById('loading-screen');
+      const statusEl   = document.getElementById('load-status');
+      const subEl      = document.getElementById('load-sub');
+      loadingEl.classList.add('visible');
 
-      // Hide loading until user taps Start
-      loadingEl.classList.add('hidden');
+      try {
+        const MindARThree = window.MINDAR.IMAGE.MindARThree;
+        const overlayRoot = document.getElementById('ar-overlay');
 
-      const mindarThree = new MindARThree({
-        container: document.getElementById('mindar-container'),
-        imageTargetSrc: 'targets.mind',
-        maxTrack: 9,
-        uiLoading: 'no',
-        uiScanning: 'no',
-        uiError: 'no'
-      });
-
-      const { renderer, scene, camera } = mindarThree;
-
-      // ── Register all 9 anchors + build DOM overlays ────────────
-      const states = TARGETS.map((t, i) => {
-        const anchor = mindarThree.addAnchor(i);
-
-        const pill = document.createElement('div');
-        pill.className = 'name-pill';
-        pill.innerHTML = `<span>${t.name}</span>`;
-        overlayRoot.appendChild(pill);
-
-        const card = document.createElement('div');
-        card.className = 'desc-card';
-        card.innerHTML = `
-          <h3>${t.name}</h3>
-          <p>${t.desc}</p>
-          <div class="close-hint">tap to close</div>
-        `;
-        overlayRoot.appendChild(card);
-
-        const state = { found: false, expanded: false, anchor, pill, card };
-
-        anchor.onTargetFound = () => {
-          state.found = true;
-          if (!state.expanded) {
-            pill.classList.add('visible');
-            pill.style.opacity = '1';
-          }
-        };
-
-        anchor.onTargetLost = () => {
-          state.found    = false;
-          state.expanded = false;
-          pill.classList.remove('visible');
-          card.classList.remove('open');
-        };
-
-        pill.addEventListener('pointerdown', (e) => {
-          e.stopPropagation();
-          if (!state.found) return;
-          state.expanded = true;
-          pill.style.opacity = '0';
-          setTimeout(() => pill.classList.remove('visible'), 220);
-          card.classList.add('open');
+        const mindarThree = new MindARThree({
+          container: document.getElementById('mindar-container'),
+          imageTargetSrc: 'targets.mind',
+          maxTrack: 9,
+          uiLoading: 'no',
+          uiScanning: 'no',
+          uiError: 'no'
         });
 
-        card.addEventListener('pointerdown', (e) => {
-          e.stopPropagation();
-          state.expanded = false;
-          card.classList.remove('open');
-          if (state.found) {
-            pill.classList.add('visible');
-            requestAnimationFrame(() => { pill.style.opacity = '1'; });
-          }
+        const { renderer, scene, camera } = mindarThree;
+
+        // Register anchors + build DOM overlays
+        const states = TARGETS.map((t, i) => {
+          const anchor = mindarThree.addAnchor(i);
+
+          const pill = document.createElement('div');
+          pill.className = 'name-pill';
+          pill.innerHTML = '<span>' + t.name + '</span>';
+          overlayRoot.appendChild(pill);
+
+          const card = document.createElement('div');
+          card.className = 'desc-card';
+          card.innerHTML = '<h3>' + t.name + '</h3><p>' + t.desc + '</p><div class="close-hint">tap to close</div>';
+          overlayRoot.appendChild(card);
+
+          const state = { found: false, expanded: false, anchor, pill, card };
+
+          anchor.onTargetFound = function () {
+            state.found = true;
+            if (!state.expanded) {
+              pill.classList.add('visible');
+              pill.style.opacity = '1';
+            }
+          };
+
+          anchor.onTargetLost = function () {
+            state.found = false;
+            state.expanded = false;
+            pill.classList.remove('visible');
+            card.classList.remove('open');
+          };
+
+          pill.addEventListener('click', function (e) {
+            e.stopPropagation();
+            if (!state.found) return;
+            state.expanded = true;
+            pill.style.opacity = '0';
+            setTimeout(function () { pill.classList.remove('visible'); }, 220);
+            card.classList.add('open');
+          });
+
+          card.addEventListener('click', function (e) {
+            e.stopPropagation();
+            state.expanded = false;
+            card.classList.remove('open');
+            if (state.found) {
+              pill.classList.add('visible');
+              requestAnimationFrame(function () { pill.style.opacity = '1'; });
+            }
+          });
+
+          return state;
         });
 
-        return state;
-      });
-
-      // ── Render loop ───────────────────────────────────────────
-      renderer.setAnimationLoop(() => {
-        renderer.render(scene, camera);
-        const canvas = renderer.domElement;
-        states.forEach(({ found, expanded, anchor, pill, card }) => {
-          if (!found) return;
-          if (!expanded) {
-            const p = projectLocalToScreen(anchor.group, camera, canvas, 0, 0.14, 0);
-            pill.style.left = p.x + 'px';
-            pill.style.top  = p.y + 'px';
-          } else {
-            const p = projectLocalToScreen(anchor.group, camera, canvas, 0, 0, 0);
-            card.style.left = p.x + 'px';
-            card.style.top  = p.y + 'px';
-          }
+        renderer.setAnimationLoop(function () {
+          renderer.render(scene, camera);
+          var canvas = renderer.domElement;
+          states.forEach(function (s) {
+            if (!s.found) return;
+            if (!s.expanded) {
+              var p = projectLocalToScreen(s.anchor.group, camera, canvas, 0, 0.14, 0);
+              s.pill.style.left = p.x + 'px';
+              s.pill.style.top  = p.y + 'px';
+            } else {
+              var p = projectLocalToScreen(s.anchor.group, camera, canvas, 0, 0, 0);
+              s.card.style.left = p.x + 'px';
+              s.card.style.top  = p.y + 'px';
+            }
+          });
         });
-      });
 
-      // ── Start button — triggers camera permission via user gesture ──
-      startBtn.addEventListener('click', () => {
-        startScreen.classList.add('hidden');
-        loadingEl.classList.remove('hidden');
-        setStatus('LOADING AR DATA…', 'Downloading target database (4.8 MB)…');
-        setTimeout(() => setStatus('PROCESSING…', 'Preparing image recognition model…'), 3000);
-        setTimeout(() => setStatus('STARTING CAMERA…', 'Please allow camera access when prompted…'), 8000);
+        // Stage loading messages while waiting
+        setTimeout(function () { statusEl.textContent = 'PROCESSING\u2026'; subEl.textContent = 'Building image recognition model\u2026'; }, 4000);
+        setTimeout(function () { statusEl.textContent = 'STARTING CAMERA\u2026'; subEl.textContent = 'Allow camera access when prompted\u2026'; }, 10000);
 
         mindarThree.start()
-          .then(() => {
-            loadingEl.classList.add('hidden');
+          .then(function () {
+            loadingEl.classList.remove('visible');
           })
-          .catch((err) => {
-          console.error('MindAR error:', err);
-          const msg = String(err).toLowerCase();
-          if (msg.includes('permission') || msg.includes('notallowed')) {
-            showError('Camera access was denied. Please allow camera access in your browser settings and reload.');
-          } else if (msg.includes('https') || msg.includes('secure')) {
-            showError('This app requires a secure HTTPS connection. Please open it from GitHub Pages.');
-          } else {
-            showError('Could not start AR. Make sure you are on HTTPS, using Chrome or Safari, and camera access is allowed.');
-          }
-        });
-      });
+          .catch(function (err) {
+            console.error('MindAR error:', err);
+            var msg = String(err).toLowerCase();
+            if (msg.indexOf('permission') !== -1 || msg.indexOf('notallowed') !== -1) {
+              showError('Camera access was denied. Allow camera in your browser settings, then tap Try Again.');
+            } else {
+              showError('Could not start AR. Make sure you are using Chrome or Safari on HTTPS, and camera access is allowed.');
+            }
+          });
+
+      } catch (e) {
+        console.error('Init error:', e);
+        showError('Initialisation failed: ' + e.message);
+      }
     });
   </script>
 </body>
