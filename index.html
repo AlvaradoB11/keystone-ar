@@ -50,11 +50,11 @@
       position: fixed;
       inset: 0;
       z-index: 9500;
-      background: radial-gradient(ellipse at center, #1e0e02 0%, #0a0400 100%);
+      background: #0a0400;
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 40px 32px;
+      padding: 32px;
       transition: opacity 0.5s ease;
     }
     #start-screen.hidden { opacity: 0; pointer-events: none; }
@@ -63,74 +63,34 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 16px;
+      gap: 20px;
       text-align: center;
-      max-width: 320px;
-      /* ornate outer frame */
-      border: 1px solid var(--gold-dim);
-      outline: 1px solid var(--gold-dim);
-      outline-offset: 8px;
-      padding: 36px 28px 32px;
-    }
-
-    .start-eyebrow {
-      font-family: 'Crimson Pro', serif;
-      font-size: 0.7rem;
-      letter-spacing: 0.22em;
-      text-transform: uppercase;
-      color: var(--gold);
-      margin-bottom: -8px;
+      max-width: 300px;
     }
 
     .start-inner h1 {
       font-family: 'Playfair Display', Georgia, serif;
-      font-size: 2.1rem;
+      font-size: 1.8rem;
       font-weight: 700;
       color: var(--parchment);
-      line-height: 1.15;
-    }
-
-    .start-rule {
-      width: 60px;
-      height: 1px;
-      background: linear-gradient(to right, transparent, var(--gold), transparent);
-      border: none;
-      margin: 2px 0;
     }
 
     .start-sub {
-      font-family: 'Crimson Pro', serif;
-      font-style: italic;
-      font-size: 0.95rem;
-      color: rgba(242,232,208,0.65);
+      font-size: 0.9rem;
+      color: rgba(242,232,208,0.55);
       line-height: 1.5;
     }
 
     #start-btn {
-      margin-top: 6px;
-      padding: 11px 32px;
+      padding: 10px 28px;
       background: transparent;
       border: 1px solid var(--gold);
       color: var(--gold-light);
-      font-family: 'Crimson Pro', serif;
-      font-size: 0.95rem;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
+      font-size: 0.9rem;
       cursor: pointer;
       -webkit-tap-highlight-color: transparent;
-      box-shadow: 0 0 16px rgba(201,151,58,0.2);
-      transition: background 0.2s, box-shadow 0.2s;
     }
-    #start-btn:active {
-      background: rgba(201,151,58,0.12);
-      box-shadow: 0 0 28px rgba(201,151,58,0.4);
-    }
-
-    .start-note {
-      font-size: 0.65rem;
-      letter-spacing: 0.06em;
-      color: rgba(242,232,208,0.2);
-    }
+    #start-btn:active { background: rgba(201,151,58,0.15); }
 
     /* ── Loading screen ── */
     #loading-screen {
@@ -322,12 +282,9 @@
 
   <div id="start-screen">
     <div class="start-inner">
-      <p class="start-eyebrow">Tulsa District &middot; U.S. Army Corps of Engineers</p>
-      <h1>Keystone Dam</h1>
-      <hr class="start-rule" />
+      <h1>Keystone Dam AR</h1>
       <p class="start-sub">Point your camera at any exhibit photograph to reveal its history.</p>
-      <button id="start-btn">Begin the Exhibit</button>
-      <p class="start-note">Camera access required &middot; HTTPS only</p>
+      <button id="start-btn">Start</button>
     </div>
   </div>
 
