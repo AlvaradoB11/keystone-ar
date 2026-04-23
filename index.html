@@ -362,24 +362,12 @@
       { name: "Spillway Excavation, Looking South", desc: "Documented October 10, 1960, this view of the center-left non-overflow section shows track-mounted cranes and excavators carving out the spillway foundation at Keystone Dam." }
     ];
 
+    const _projVec = new THREE.Vector3();
     function projectLocalToScreen(group, camera, canvas, lx, ly, lz) {
-      const mw = group.matrixWorld.elements;
-      const wx = mw[0]*lx + mw[4]*ly + mw[8]*lz  + mw[12];
-      const wy = mw[1]*lx + mw[5]*ly + mw[9]*lz  + mw[13];
-      const wz = mw[2]*lx + mw[6]*ly + mw[10]*lz + mw[14];
-      const ww = mw[3]*lx + mw[7]*ly + mw[11]*lz + mw[15];
-      const mv = camera.matrixWorldInverse.elements;
-      const vx = mv[0]*wx + mv[4]*wy + mv[8]*wz  + mv[12]*ww;
-      const vy = mv[1]*wx + mv[5]*wy + mv[9]*wz  + mv[13]*ww;
-      const vz = mv[2]*wx + mv[6]*wy + mv[10]*wz + mv[14]*ww;
-      const vw = mv[3]*wx + mv[7]*wy + mv[11]*wz + mv[15]*ww;
-      const mp = camera.projectionMatrix.elements;
-      const cx = mp[0]*vx + mp[4]*vy + mp[8]*vz  + mp[12]*vw;
-      const cy = mp[1]*vx + mp[5]*vy + mp[9]*vz  + mp[13]*vw;
-      const cw = mp[3]*vx + mp[7]*vy + mp[11]*vz + mp[15]*vw;
+      _projVec.set(lx, ly, lz).applyMatrix4(group.matrixWorld).project(camera);
       return {
-        x: ( cx/cw * 0.5 + 0.5) * canvas.clientWidth,
-        y: (-cy/cw * 0.5 + 0.5) * canvas.clientHeight
+        x: ( _projVec.x * 0.5 + 0.5) * canvas.clientWidth,
+        y: (-_projVec.y * 0.5 + 0.5) * canvas.clientHeight
       };
     }
 
@@ -460,7 +448,7 @@
           states.forEach(s => {
             if (!s.found) return;
             if (!s.expanded) {
-              const p = projectLocalToScreen(s.anchor.group, camera, canvas, 0, -0.14, 0);
+              const p = projectLocalToScreen(s.anchor.group, camera, canvas, 0, 0, 0);
               s.pill.style.left = p.x + 'px'; s.pill.style.top = p.y + 'px';
             } else {
               const p = projectLocalToScreen(s.anchor.group, camera, canvas, 0, 0, 0);
